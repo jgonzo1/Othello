@@ -8,16 +8,15 @@ public class Cell {
     private int ME = 1;
     private int OPPONENT = -1;
     private int EMPTY = 0;
-    private int row;
-    private int column;
     private boolean border;
+    private boolean me;
 
     public Cell() {
         cellvalue = 0;
         border = false;
         cellcolor = '0';
-        row = 0;
-        column = 0;
+        me = false;
+
     }
 
     public int getCellvalue() {
@@ -42,11 +41,13 @@ public class Cell {
 
     public void setME(String color) {
         cellvalue = ME;
+        me = true;
         setColor(color);
     }
 
     public void setOPPONENT(String color) {
         cellvalue = OPPONENT;
+        me = false;
         setColor(color);
     }
 
@@ -61,6 +62,11 @@ public class Cell {
     public void setBorder(char input) {
         border = true;
         bordervalue = input;
+        cellvalue = 5;
+    }
+
+    public boolean isMe() {
+        return me;
     }
 
     @Override

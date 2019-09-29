@@ -3,18 +3,31 @@ import java.util.List;
 
 public class Gameboard {
 
-    private Cell [][] board = new Cell[10][10];
+    private int HEIGHT = 10;
+    private int WIDTH = 10;
+    private Cell [][] board = new Cell[HEIGHT][WIDTH];
     private String myColor;
     private String oppColor;
-    private Index index;
     private int currenty;
     private int currentx;
+    private int playablex;
+    private int playabley;
+    private int player;
+    private boolean endgame = false;
     Direction dir;
 
 
     public Gameboard() {
         myColor = "C not set";
         oppColor = "C not set";
+    }
+
+    public boolean isEndgame() {
+        return endgame;
+    }
+
+    public void endGame() {
+        endgame = true;
     }
 
     public String getMyColor() {
@@ -25,16 +38,12 @@ public class Gameboard {
         this.myColor = myColor;
     }
 
-    //return if the piece is ok to flip
+    //return if the piece is the edge
     public boolean isValid(int x, int y) {
         if (board[y][x].getCellvalue() == 0) {
             return false;
         }
         return true;
-    }
-
-    public void candidateCheck(){
-
     }
 
     public void next(Direction d, int x, int y) {
@@ -80,25 +89,44 @@ public class Gameboard {
         }
     }
 
+    public void inspectPiece(List<Index> candidate, int x, int y) {
+
+        if (board[y][x].getCellvalue() == player) {
+
+        }
+
+    }
+
     public void flipPieces(int x, int y) {
-        int player = board[y][x].getCellvalue();
+        player = board[y][x].getCellvalue();
 
         Direction [] direction = Direction.values();
         for (Direction d : direction) {
             next(d, x, y);
 
+            if (isValid(currentx, currenty)) {
+                next(d, currentx, currenty);
+
+                List<Index> candidates = new ArrayList<>();
+                inspectPiece(candidates, currentx, currenty);
+            }
+
+            /*
             while (isValid(currentx, currenty)) {
-                //flip that piece of s
+                candidates = new ArrayList<>();
+                //store candidates
                 if (board[currenty][currentx].getCellvalue() != player) {
-                    if (player == -1) {
-                        board[currenty][currentx].setOPPONENT(oppColor);
-                    } else if (player == 1) {
-                        board[currenty][currentx].setME(myColor);
-                    }
+                    candidates.add(new Index(currentx, currenty));
                 }
+
+                if (board[currenty][currentx].isBorder()) {
+                    break;
+                }
+
                 //keep going on the same direction
                 next(d, currentx, currenty);
             }
+            */
 
 
         }
@@ -106,26 +134,65 @@ public class Gameboard {
 
     public void playOpponentMove(int x, int y) {
         board[y][x].setOPPONENT(oppColor);
+        System.out.println("flipping");
+        flipPieces(x, y);
         printBoard();
+    }
+
+    public void playMyMove(int x, int y) {
+        board[y][x].setME(myColor);
+        System.out.println("flipping");
         flipPieces(x, y);
         printBoard();
     }
 
     public void printBoard() {
-        for (int i = 0; i < 10; i++ ) {
+        for (int i = 0; i < HEIGHT; i++ ) {
             System.out.println();
             System.out.print("C ");
-            for (int j = 0; j < 10; j++ ) {
+            for (int j = 0; j < WIDTH; j++ ) {
                 System.out.print(board[i][j] + " ");
             }
         }
         System.out.println();
     }
 
+    public int getPlayablex() {
+        return playablex;
+    }
+
+    public int getPlayabley() {
+        return playabley;
+    }
+
     public void getLegalmoves() {
         //get my piece and check there
-        for (int i = 0; i < 10; i++ ) {
+        for (int i = 0; i < HEIGHT; i++ ) {
+            for (int j= 0; j < WIDTH; j++ ) {
+                if (board[i][j].isMe()) {
+                    int turnablePieces = 0;
+                    Direction [] direction = Direction.values();
 
+                    for (Direction d : direction) {
+                        next(d, j, i);
+
+                        while (isValid(currentx, currenty)) {
+                            //keep going on the same direction
+                            next(d, currentx, currenty);
+                            if (board[currenty][currentx].getCellvalue() == 5) {
+                                break;
+                            }
+                            if (board[currenty][currentx].getCellvalue() == 0) {
+                                System.out.println("" + currentx + " " + currenty + " is a valid move");
+                                playablex = currentx;
+                                playabley = currenty;
+                            }
+                        }
+
+
+                    }
+                }
+            }
         }
     }
 
@@ -147,13 +214,13 @@ public class Gameboard {
 
         int counter2 = 48;
         boolean vertical = false;
-        for (int i = 0; i < 10; i++ ) {
+        for (int i = 0; i < HEIGHT; i++ ) {
             int counter = 97;
             if (i >= 1) {
                 vertical = true;
                 counter2++;
             }
-            for (int j = 0; j < 10; j++ ) {
+            for (int j = 0; j < WIDTH; j++ ) {
                 board[i][j] = new Cell();
 
                 //set borders
