@@ -13,7 +13,10 @@ public class Gameboard {
     private int playablex;
     private int playabley;
     private int player;
+    private int count;
+    private boolean legal = false;
     private boolean endgame = false;
+    private List<Index> candidates = new ArrayList<>();
     Direction dir;
 
 
@@ -40,7 +43,7 @@ public class Gameboard {
 
     //return if the piece is the edge
     public boolean isValid(int x, int y) {
-        if (board[y][x].getCellvalue() == 0) {
+        if (board[y][x].getCellvalue() == 0 || board[y][x].isBorder()) {
             return false;
         }
         return true;
@@ -89,10 +92,20 @@ public class Gameboard {
         }
     }
 
-    public void inspectPiece(List<Index> candidate, int x, int y) {
+    public void inspectPiece(Direction d, int x, int y) {
 
         if (board[y][x].getCellvalue() == player) {
 
+        } else if (board[y][x].isBorder() || board[y][x].getCellvalue() == 0) {
+            candidates.clear();
+        } else {
+            if (isValid(currentx, currenty)) {
+                candidates.add(new Index(currentx, currenty));
+                next(d, currentx, currenty);
+                inspectPiece(d, currentx, currenty);
+            } else {
+                candidates.clear();
+            }
         }
 
     }
@@ -102,46 +115,40 @@ public class Gameboard {
 
         Direction [] direction = Direction.values();
         for (Direction d : direction) {
+            candidates.clear();
             next(d, x, y);
 
             if (isValid(currentx, currenty)) {
+                candidates.add(new Index(currentx, currenty));
                 next(d, currentx, currenty);
+                inspectPiece(d, currentx, currenty);
 
-                List<Index> candidates = new ArrayList<>();
-                inspectPiece(candidates, currentx, currenty);
-            }
+                for (Index c : candidates) {
+                    // philip
+                    if (player == -1) {
+                        board[c.getColumn()][c.getRow()].setOPPONENT(oppColor);
+                    } else if (player == 1) {
+                        board[c.getColumn()][c.getRow()].setME(myColor);
+                    }
 
-            /*
-            while (isValid(currentx, currenty)) {
-                candidates = new ArrayList<>();
-                //store candidates
-                if (board[currenty][currentx].getCellvalue() != player) {
-                    candidates.add(new Index(currentx, currenty));
                 }
-
-                if (board[currenty][currentx].isBorder()) {
-                    break;
-                }
-
-                //keep going on the same direction
-                next(d, currentx, currenty);
             }
-            */
-
-
         }
     }
 
     public void playOpponentMove(int x, int y) {
         board[y][x].setOPPONENT(oppColor);
-        System.out.println("flipping");
+        System.out.println("C flipping");
+        printBoard();
         flipPieces(x, y);
         printBoard();
     }
 
     public void playMyMove(int x, int y) {
         board[y][x].setME(myColor);
-        System.out.println("flipping");
+        System.out.println("C flipping");
+        System.out.println("" + myColor + ((char) (x + 96)) + " " + y);
+        printBoard();
         flipPieces(x, y);
         printBoard();
     }
@@ -165,17 +172,51 @@ public class Gameboard {
         return playabley;
     }
 
+    public void legalInspect(Direction d, int x, int y) {
+
+        if (board[y][x].getCellvalue() == 0) {
+            System.out.println("C " + ((char) (currentx + 96)) + " " + currenty + " is a valid move");
+            playablex = currentx;
+            playabley = currenty;
+        } else if (board[y][x].isBorder()) {
+
+        } else {
+            if (isValid(currentx, currenty)) {
+                candidates.add(new Index(currentx, currenty));
+                next(d, currentx, currenty);
+                legalInspect(d, currentx, currenty);
+            } else {
+                System.out.println("C No legal move pass");
+                System.out.println(myColor);
+            }
+        }
+
+    }
+
     public void getLegalmoves() {
+
+        legal = false;
         //get my piece and check there
         for (int i = 0; i < HEIGHT; i++ ) {
             for (int j= 0; j < WIDTH; j++ ) {
                 if (board[i][j].isMe()) {
+                    player = board[i][j].getCellvalue();
                     int turnablePieces = 0;
                     Direction [] direction = Direction.values();
 
                     for (Direction d : direction) {
                         next(d, j, i);
 
+                        if (isValid(currentx, currenty)) {
+                            if (!(board[currenty][currentx].getCellvalue() == player)) {
+                                next(d, currentx, currenty);
+                                legalInspect(d, currentx, currenty);
+                            }
+
+                        }
+
+
+                        /*
                         while (isValid(currentx, currenty)) {
                             //keep going on the same direction
                             next(d, currentx, currenty);
@@ -183,17 +224,18 @@ public class Gameboard {
                                 break;
                             }
                             if (board[currenty][currentx].getCellvalue() == 0) {
-                                System.out.println("" + currentx + " " + currenty + " is a valid move");
+                                System.out.println("C " + ((char) (currentx + 97)) + " " + currenty + " is a valid move");
                                 playablex = currentx;
                                 playabley = currenty;
                             }
                         }
 
-
+                        */
                     }
                 }
             }
         }
+        legal = false;
     }
 
     public void checkLegalmove(int x, int y) {

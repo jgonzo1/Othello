@@ -19,13 +19,13 @@ public class Othello {
         int endgame;
 
         System.out.println("C Enter Mycolor");
-        input = "I W";
+        input = scan.nextLine();
         board.initialize(input);
 
         //if I am white,opponent starts first
         if (board.getMyColor().compareTo("W") == 0) {
             System.out.println("C opponent's turn");
-            oppinput = "B c 4";
+            oppinput = scan.nextLine();
             oppinput = oppinput.replaceAll("\\s+","");
             board.playOpponentMove((int) oppinput.charAt(1) - 96, Character.getNumericValue(oppinput.charAt(2)));
         }
